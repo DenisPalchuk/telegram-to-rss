@@ -1,0 +1,19 @@
+{
+  "scripts": {
+    "dev": "wrangler dev src/index.ts",
+    "deploy": "wrangler deploy --minify src/index.ts"
+  },
+  "dependencies": {
+    "@auth/core": "^0.28.0",
+    "@auth/d1-adapter": "^0.7.0",
+    "@hono/auth-js": "^1.0.3",
+    "bcryptjs": "^2.4.3",
+    "hono": "^4.0.10"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20240222.0",
+    "@types/bcryptjs": "^2.4.6",
+    "typescript": "^5.4.2",
+    "wrangler": "^3.32.0"
+  }
+}

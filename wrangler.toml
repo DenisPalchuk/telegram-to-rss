@@ -1,0 +1,10 @@
+name = "telegram-to-rss"
+compatibility_date = "2023-12-01"
+main = "src/index.ts"
+
+
+
+[[d1_databases]]
+binding = "DB"
+database_name = "telegram-to-rss"
+database_id = "cef8d116-2d7e-4996-9970-1b3cf14833da"
