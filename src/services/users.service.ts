@@ -1,26 +1,25 @@
 import { UsersDao } from "../dao/users.dao";
 import bcrypt from "bcryptjs";
-import { sign } from "hono/jwt";
+import { TokenService } from "./token.service";
 
 export class UsersService {
   constructor(
     private readonly usersDao: UsersDao,
-    private readonly AUTH_SECRET: string
+    private readonly tokenService: TokenService
   ) {}
 
   async register(email: string, password: string): Promise<string | null> {
     const salt = await bcrypt.genSalt(10);
     const hash = await bcrypt.hash(password, salt);
+    const uuid = crypto.randomUUID();
 
-    const result = await this.usersDao.create(email, hash);
+    const result = await this.usersDao.create(uuid, email, hash);
 
     if (!result.success) {
       return null;
     }
 
-    const token = await sign({ email }, this.AUTH_SECRET);
-
-    return token;
+    return this.tokenService.generateToken(email, uuid);
   }
 
   async login(email: string, password: string) {
@@ -35,13 +34,6 @@ export class UsersService {
       return null;
     }
 
-    console.log(this.AUTH_SECRET);
-    const token = await sign(
-      {
-        email,
-      },
-      this.AUTH_SECRET
-    );
-    return token;
+    return this.tokenService.generateToken(email, user.id);
   }
 }

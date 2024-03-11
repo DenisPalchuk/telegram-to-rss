@@ -1,15 +1,13 @@
 interface User {
   email: string;
-  uuid: string;
+  id: string;
   password: string;
 }
 
 export class UsersDao {
   constructor(private readonly db: D1Database) {}
 
-  async create(email: string, passwordHash: string) {
-    const uuid = crypto.randomUUID();
-
+  async create(uuid: string, email: string, passwordHash: string) {
     return this.db
       .prepare(`INSERT INTO users (id, email, password) VALUES (?, ?, ?)`)
       .bind(uuid, email, passwordHash)
