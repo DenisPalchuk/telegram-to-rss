@@ -8,11 +8,13 @@
     "@auth/d1-adapter": "^0.7.0",
     "@hono/auth-js": "^1.0.3",
     "bcryptjs": "^2.4.3",
-    "hono": "^4.0.10"
+    "hono": "^4.0.10",
+    "telegram": "^2.19.19"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20240222.0",
     "@types/bcryptjs": "^2.4.6",
+    "input": "^1.0.1",
     "typescript": "^5.4.2",
     "wrangler": "^3.32.0"
   }

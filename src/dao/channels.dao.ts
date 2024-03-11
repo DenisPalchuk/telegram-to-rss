@@ -2,7 +2,7 @@ export interface Channel {
   uuid: string;
   userId: string;
   channelId: string;
-  lastMessageId: string | null;
+  lastMessageDateTime: number | null;
 }
 
 export class ChannelsDao {
@@ -11,14 +11,14 @@ export class ChannelsDao {
   async create(
     channelId: string,
     userId: string,
-    lastMessageId: string | null
+    lastMessageDateTime: number | null
   ) {
     const uuid = crypto.randomUUID();
     return this.db
       .prepare(
-        `INSERT INTO channels (id, userId, channelId, lastMessageId) VALUES (?, ?, ?, ?) RETURNING *`
+        `INSERT INTO channels (id, userId, channelId, lastMessageDateTime) VALUES (?, ?, ?, ?) RETURNING *`
       )
-      .bind(uuid, userId, channelId, lastMessageId)
+      .bind(uuid, userId, channelId, lastMessageDateTime)
       .run() as Promise<D1Result<Channel>>;
   }
 

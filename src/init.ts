@@ -11,6 +11,9 @@ export type Bindings = {
 
 export type Variables = {
   AUTH_SECRET: string;
+  TELEGRAM_API_ID: string;
+  TELEGRAM_API_HASH: string;
+  TELEGRAM_SESSION_KEY: string;
 };
 
 export const initLayers = (
