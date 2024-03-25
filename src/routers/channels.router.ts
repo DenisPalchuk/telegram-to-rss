@@ -20,4 +20,9 @@ app.post("/", async (c) => {
   return c.json(result);
 });
 
+app.get("/:channelId/posts", async (c) => {
+  const channelId = c.req.param("channelId");
+  
+});
+
 export default app;

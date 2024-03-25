@@ -11,4 +11,8 @@ export class ChannelsService {
 
     return result.results;
   }
+
+  async getLastPostsByChannel(channelId: string, userId: string) {
+    // TODO: create custom telegram sdk and use it for retrieving posts
+  }
 }
