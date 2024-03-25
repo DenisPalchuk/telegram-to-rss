@@ -9,7 +9,7 @@
     "@hono/auth-js": "^1.0.3",
     "bcryptjs": "^2.4.3",
     "hono": "^4.0.10",
-    "telegram": "^2.19.19"
+    "telegram": "^2.20.2"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20240222.0",
