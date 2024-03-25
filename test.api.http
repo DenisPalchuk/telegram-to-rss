@@ -1,0 +1,27 @@
+POST http://localhost:8787/auth/signup
+Content-Type: application/json
+
+{
+  "password": "123",
+  "email": "test@test.com"
+}
+
+###
+
+POST http://localhost:8787/auth/signin
+Content-Type: application/json
+
+{
+  "password": "123",
+  "email": "test@test.com"
+}
+
+###
+
+POST http://localhost:8787/channels
+Content-Type: application/json
+Authorization: Bearer {token}
+
+{
+  "channelId": "nikitonsky_pub"
+}
