@@ -6,6 +6,8 @@ import { UsersDao } from "./dao/user.dao";
 import { MongoClient } from "mongodb";
 import { Logger, TelegramClient } from "telegram";
 import { LogLevel } from "telegram/extensions/Logger";
+import { StringSession } from "telegram/sessions";
+import { TelegramService } from "./services/telegram.service";
 
 export type Variables = {
   AUTH_SECRET: string;
@@ -34,18 +36,21 @@ export const initLayers = async () => {
     throw new Error("ENV variables are not set properly");
   }
 
+  const stringSession = new StringSession(TELEGRAM_SESSION_KEY);
+
   // TODO: replace it with TelegramService and Telegram SDK
   const telegramClient = new TelegramClient(
-    TELEGRAM_SESSION_KEY,
+    stringSession,
     parseInt(TELEGRAM_API_ID, 10),
     TELEGRAM_API_HASH,
     {
       systemVersion: "1.0",
       connectionRetries: 5,
-      baseLogger: new Logger(LogLevel.DEBUG),
+      baseLogger: new Logger(LogLevel.INFO),
     },
   );
   await telegramClient.connect();
+  const telegramService = new TelegramService(telegramClient);
 
   const mongoClient = new MongoClient(MONGO_URI);
   const db = mongoClient.db(MONGO_DB);
@@ -59,6 +64,6 @@ export const initLayers = async () => {
     usersService,
     channelsService,
     tokenService,
-    telegramClient,
+    telegramService,
   };
 };

@@ -1,3 +1,7 @@
+@url = http://localhost:3000
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI5OWQzZGE3My03YjVjLTRhOTQtOGQyYy1hM2UxNTFmNDk1OTgiLCJpYXQiOjE3MzA2NzAyNDIsImV4cCI6MTczMDc1NjY0MiwiZW1haWwiOiJ0ZXN0QHRlc3QuY29tIn0.KYGumXofMwXkBSW1UY1564q4_PgfS1z9GnWtsoP9Fqc
+
+# Sign Up
 POST {{url}}/auth/signup
 Content-Type: application/json
 
@@ -19,15 +23,21 @@ Content-Type: application/json
 ###
 POST {{url}}/channels
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI1ZmU1Y2UzMS0xYjgyLTQ3YzktOTgzMC01OTk2MDE5YTNiMDAiLCJpYXQiOjE3MjU0NTkxOTcsImV4cCI6MTcyNTU0NTU5NywiZW1haWwiOiJ0ZXN0QHRlc3QuY29tIn0.lIjhAalFtYY9jnlfr1EdqsOyTnJqrfzNEFAOFoeMhOw
+Authorization: Bearer {{token}}
 
 {
   "channelId": "nikitonsky_pub"
 }
 
 ###
+GET {{url}}/channels/nikitonsky_pub/posts
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+
+###
 POST {{url}}/telegram
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI1ZmU1Y2UzMS0xYjgyLTQ3YzktOTgzMC01OTk2MDE5YTNiMDAiLCJpYXQiOjE3MjY2NDg0NDcsImV4cCI6MTcyNjczNDg0NywiZW1haWwiOiJ0ZXN0QHRlc3QuY29tIn0.a4OCvVRmfK7_bCnHaMii-KyrLv3mP1oTYouYBqICnqI
+Authorization: Bearer {{token}}
 
 {}
