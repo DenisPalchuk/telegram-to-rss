@@ -1,17 +1,21 @@
-import { Hono } from "hono";
-import { Bindings, Variables } from "./init";
-import authRouter from "./routers/auth.router";
-import channelsRouter from "./routers/channels.router";
-import telegramRouter from "./routers/telegram.router";
+import express from "express";
+import { getAuthRouter } from "./routers/auth.router";
+import { getChannelsRouter } from "./routers/channels.router";
+import { getTelegramRouter } from "./routers/telegram.router";
+import { initLayers } from "./init";
 
-const app = new Hono<{ Bindings: Bindings & Variables }>();
+const app = express();
 
-app.get("/", (c) => {
-  return c.text("Hello Hono!");
+initLayers().then((context) => {
+  app.get("/", (req, res) => {
+    res.send("Hello Express!");
+  });
+
+  app.use("/auth", getAuthRouter(context.usersService));
+  app.use("/channels", getChannelsRouter(context.channelsService));
+  app.use("/telegram", getTelegramRouter(context.telegramClient));
+
+  app.listen(3000);
 });
-
-app.route("/auth", authRouter);
-app.route("/channels", channelsRouter);
-app.route("/telegram", telegramRouter);
 
 export default app;

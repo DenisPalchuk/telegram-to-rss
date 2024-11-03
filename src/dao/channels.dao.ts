@@ -1,31 +1,28 @@
-export interface Channel {
-  uuid: string;
-  userId: string;
-  channelId: string;
-  lastMessageDateTime: number | null;
-}
+import { Collection, Db } from "mongodb";
+import { Channel } from "../entities/channel";
 
 export class ChannelsDao {
-  constructor(private readonly db: D1Database) {}
+  public chanelsCollection: Collection<Channel>;
+  constructor(db: Db) {
+    this.chanelsCollection = db.collection<Channel>("channels");
+  }
 
   async create(
     channelId: string,
     userId: string,
-    lastMessageDateTime: number | null
+    lastMessageDateTime: number | null,
   ) {
-    const uuid = crypto.randomUUID();
-    return this.db
-      .prepare(
-        `INSERT INTO channels (id, userId, channelId, lastMessageDateTime) VALUES (?, ?, ?, ?) RETURNING *`
-      )
-      .bind(uuid, userId, channelId, lastMessageDateTime)
-      .run() as Promise<D1Result<Channel>>;
+    return this.chanelsCollection.insertOne({
+      userId,
+      channelId,
+      lastMessageDateTime,
+    });
   }
 
   async readOne(channelId: string, userId: string) {
-    return this.db
-      .prepare("SELECT * FROM channels WHERE userId = ? AND channelId = ?")
-      .bind(userId, channelId)
-      .first<Channel>();
+    return this.chanelsCollection.findOne<Channel>({
+      userId,
+      channelId,
+    });
   }
 }

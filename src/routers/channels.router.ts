@@ -1,28 +1,27 @@
-import { Hono } from "hono";
-import { Bindings, Variables, initLayers } from "../init";
+import express from "express";
 import { verifyAuth } from "./middlewares/auth.middleware";
+import { ChannelsService } from "../services/channels.service";
 
-const app = new Hono<{ Bindings: Bindings & Variables }>();
+export const getChannelsRouter = (channelsService: ChannelsService) => {
+  const router = express.Router();
 
-app.use("*", verifyAuth());
-app.post("/", async (c) => {
-  const { channelsService } = initLayers(c);
+  router.use(verifyAuth());
+  router.post("/", async (req, res) => {
+    const user = req.user;
+    const result = await channelsService.addChannel(
+      req.body.channelId,
+      user.userId,
+    );
+    if (!result) {
+      res.status(500).send("Add channel operation failed");
+    }
 
-  const body = await c.req.json();
+    res.json(result);
+  });
 
-  const user = c.get("jwtPayload");
-  const result = await channelsService.addChannel(body.channelId, user.userId);
-  if (!result) {
-    c.status(500);
-    c.text("Add channel operation failed");
-  }
+  router.get("/:channelId/posts", async (req, res) => {
+    const channelId = req.params.channelId;
+  });
 
-  return c.json(result);
-});
-
-app.get("/:channelId/posts", async (c) => {
-  const channelId = c.req.param("channelId");
-  
-});
-
-export default app;
+  return router;
+};

@@ -1,21 +1,28 @@
 {
+  "name": "telegram-to-rss",
+  "version": "1.0.0",
+  "main": "src/index.ts",
   "scripts": {
-    "dev": "wrangler dev src/index.ts",
-    "deploy": "wrangler deploy --minify src/index.ts"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "tsx src/index.ts"
   },
+  "author": "",
+  "license": "ISC",
+  "description": "",
   "dependencies": {
-    "@auth/core": "^0.28.0",
-    "@auth/d1-adapter": "^0.7.0",
-    "@hono/auth-js": "^1.0.3",
     "bcryptjs": "^2.4.3",
-    "hono": "^4.0.10",
-    "telegram": "^2.20.2"
+    "express": "^4.21.1",
+    "jsonwebtoken": "^9.0.2",
+    "mongodb": "^6.10.0",
+    "telegram": "^2.26.6",
+    "tsx": "^4.19.2"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20240222.0",
     "@types/bcryptjs": "^2.4.6",
-    "input": "^1.0.1",
-    "typescript": "^5.4.2",
-    "wrangler": "^3.32.0"
+    "@types/express": "^5.0.0",
+    "@types/jsonwebtoken": "^9.0.7",
+    "@types/node": "^22.8.7",
+    "prettier": "^3.3.3",
+    "typescript": "^5.6.3"
   }
 }

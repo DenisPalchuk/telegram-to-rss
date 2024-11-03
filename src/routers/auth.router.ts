@@ -1,41 +1,38 @@
-// books.ts
-import { Hono } from "hono";
-import { Bindings, Variables, initLayers } from "../init";
+import express from "express";
+import { initLayers } from "../init";
+import { UsersService } from "../services/users.service";
 
-const app = new Hono<{ Bindings: Bindings & Variables }>();
+export const getAuthRouter = (usersService: UsersService) => {
+  const router = express.Router();
 
-app.post("/signup", async (c) => {
-  const { usersService } = initLayers(c);
-  const { password, email } = await c.req.json();
+  router.post("/signup", async (req, res) => {
+    const { password, email } = req.body;
 
-  const token = await usersService.register(email, password);
+    const token = await usersService.register(email, password);
 
-  if (token) {
-    c.status(201);
-    return c.json({
-      token,
-    });
-  } else {
-    c.status(500);
-    return c.text("Something went wrong");
-  }
-});
+    if (token) {
+      res.status(201).json({
+        token,
+      });
+    } else {
+      res.status(500).send("Something went wrong");
+    }
+  });
 
-app.post("/signin", async (c) => {
-  const { usersService } = initLayers(c);
-  const { password, email } = await c.req.json();
+  router.post("/signin", async (req, res) => {
+    const { usersService } = await initLayers();
+    const { password, email } = req.body;
 
-  const token = await usersService.login(email, password);
+    const token = await usersService.login(email, password);
 
-  if (token) {
-    c.status(201);
-    return c.json({
-      token,
-    });
-  } else {
-    c.status(500);
-    return c.text("Something went wrong");
-  }
-});
+    if (token) {
+      res.status(201).json({
+        token,
+      });
+    } else {
+      res.status(500).send("Something went wrong");
+    }
+  });
 
-export default app;
+  return router;
+};

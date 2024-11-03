@@ -1,0 +1,32 @@
+# Use root/example as user/password credentials
+version: "3.1"
+
+services:
+  mongo:
+    image: mongo
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+      MONGO_INITDB_DATABASE: test
+
+  app:
+    image: node:20
+    restart: always
+    ports:
+      - 3000:3000
+    working_dir: /app
+    volumes:
+      - .:/app
+    environment:
+      MONGO_USERNAME: ${MONGO_USERNAME}
+      MONGO_PASSWORD: ${MONGO_PASSWORD}
+      MONGO_URI: ${MONGO_URI}
+      MONGO_DB: ${MONGO_DB}
+      AUTH_SECRET: ${AUTH_SECRET}
+      TELEGRAM_API_ID: ${TELEGRAM_API_ID}
+      TELEGRAM_API_HASH: ${TELEGRAM_API_HASH}
+      TELEGRAM_SESSION_KEY: ${TELEGRAM_SESSION_KEY}
+    command: sh -c "npm install && npm start"
+    depends_on:
+      - mongo

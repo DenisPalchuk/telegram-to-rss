@@ -1,38 +1,25 @@
-import { Hono } from "hono";
-import { Bindings, Variables, initLayers } from "../init";
+import express from "express";
 import { verifyAuth } from "./middlewares/auth.middleware";
-import { StringSession } from "telegram/sessions";
-import { Logger, TelegramClient } from "telegram";
-import { ConnectionTCPObfuscated } from "telegram/network";
-import { LogLevel } from "telegram/extensions/Logger";
+import { LogLevel, Logger } from "telegram/extensions/Logger";
+import { TelegramClient } from "telegram";
 
-const app = new Hono<{ Bindings: Bindings & Variables }>();
+export const getTelegramRouter = (client: TelegramClient) => {
+  const router = express.Router();
+  router.use(verifyAuth());
 
-app.use("*", verifyAuth());
-app.post("/", async (c) => {
-  console.log(c.env.TELEGRAM_SESSION_KEY);
-  const stringSession = new StringSession(c.env.TELEGRAM_SESSION_KEY);
-  const client = new TelegramClient(
-    stringSession,
-    parseInt(c.env.TELEGRAM_API_ID, 10),
-    c.env.TELEGRAM_API_HASH,
-    {
-      systemVersion: "1.0",
-      connectionRetries: 5,
-      baseLogger: new Logger(LogLevel.DEBUG),
+  router.post("/", async (req, res) => {
+    console.log("telegram id", process.env.TELEGRAM_API_ID);
+    console.log("telegram hash", process.env.TELEGRAM_API_HASH);
+
+    const isAuthorized = await client.isUserAuthorized();
+    if (!isAuthorized) {
+      throw new Error("Telegram User is unAuthorized");
     }
-  );
-  await client.connect();
 
-  const isAuthorized = await client.isUserAuthorized();
-  if (!isAuthorized) {
-    throw new Error("Telegram User is unAuthorized");
-  }
-
-  c.status(200);
-  c.json({
-    isAuthorized: isAuthorized,
+    res.status(200).json({
+      isAuthorized: isAuthorized,
+    });
   });
-});
 
-export default app;
+  return router;
+};

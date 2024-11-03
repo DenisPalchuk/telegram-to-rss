@@ -1,4 +1,4 @@
-POST http://localhost:8787/auth/signup
+POST {{url}}/auth/signup
 Content-Type: application/json
 
 {
@@ -8,7 +8,7 @@ Content-Type: application/json
 
 ###
 
-POST http://localhost:8787/auth/signin
+POST {{url}}/auth/signin
 Content-Type: application/json
 
 {
@@ -17,11 +17,17 @@ Content-Type: application/json
 }
 
 ###
-
-POST http://localhost:8787/channels
+POST {{url}}/channels
 Content-Type: application/json
-Authorization: Bearer {token}
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI1ZmU1Y2UzMS0xYjgyLTQ3YzktOTgzMC01OTk2MDE5YTNiMDAiLCJpYXQiOjE3MjU0NTkxOTcsImV4cCI6MTcyNTU0NTU5NywiZW1haWwiOiJ0ZXN0QHRlc3QuY29tIn0.lIjhAalFtYY9jnlfr1EdqsOyTnJqrfzNEFAOFoeMhOw
 
 {
   "channelId": "nikitonsky_pub"
 }
+
+###
+POST {{url}}/telegram
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI1ZmU1Y2UzMS0xYjgyLTQ3YzktOTgzMC01OTk2MDE5YTNiMDAiLCJpYXQiOjE3MjY2NDg0NDcsImV4cCI6MTcyNjczNDg0NywiZW1haWwiOiJ0ZXN0QHRlc3QuY29tIn0.a4OCvVRmfK7_bCnHaMii-KyrLv3mP1oTYouYBqICnqI
+
+{}

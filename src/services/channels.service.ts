@@ -5,11 +5,11 @@ export class ChannelsService {
 
   async addChannel(channelId: string, userId: string) {
     const result = await this.channelsDao.create(channelId, userId, null);
-    if (!result.success) {
+    if (!result.acknowledged) {
       return undefined;
     }
 
-    return result.results;
+    return true;
   }
 
   async getLastPostsByChannel(channelId: string, userId: string) {

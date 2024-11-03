@@ -1,11 +1,11 @@
-import { UsersDao } from "../dao/users.dao";
+import { UsersDao } from "../dao/user.dao";
 import bcrypt from "bcryptjs";
 import { TokenService } from "./token.service";
 
 export class UsersService {
   constructor(
     private readonly usersDao: UsersDao,
-    private readonly tokenService: TokenService
+    private readonly tokenService: TokenService,
   ) {}
 
   async register(email: string, password: string): Promise<string | null> {
@@ -15,7 +15,7 @@ export class UsersService {
 
     const result = await this.usersDao.create(uuid, email, hash);
 
-    if (!result.success) {
+    if (!result.acknowledged) {
       return null;
     }
 

@@ -1,16 +1,19 @@
 {
   "compilerOptions": {
-    "target": "ESNext",
-    "module": "ESNext",
-    "moduleResolution": "bundler",
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "lib": ["ES2022"],
+    "outDir": "./dist",
+    "rootDir": "./src",
     "strict": true,
-    "lib": [
-      "ESNext"
-    ],
-    "types": [
-        "@cloudflare/workers-types/2023-07-01"
-    ],
-    "jsx": "react-jsx",
-    "jsxImportSource": "hono/jsx"
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "removeComments": true,
+    "typeRoots": ["./node_modules/@types"],
+    "sourceMap": true
   },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
 }
