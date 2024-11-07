@@ -1,7 +1,6 @@
 import express from "express";
 import { getAuthRouter } from "./routers/auth.router";
 import { getChannelsRouter } from "./routers/channels.router";
-import { getTelegramRouter } from "./routers/telegram.router";
 import { initLayers } from "./init";
 import { errorHandler } from "./routers/middlewares/errors.middleware";
 
@@ -17,10 +16,10 @@ initLayers().then((context) => {
   app.use("/auth", getAuthRouter(context.usersService));
   app.use(
     "/channels",
-    getChannelsRouter(context.channelsService, context.telegramService),
+    getChannelsRouter(context.channelsService, context.telegramService)
   );
 
-  app.listen(3000);
+  app.listen(3001);
 });
 
 export default app;

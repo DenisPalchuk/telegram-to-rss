@@ -8,6 +8,7 @@ import { Logger, TelegramClient } from "telegram";
 import { LogLevel } from "telegram/extensions/Logger";
 import { StringSession } from "telegram/sessions";
 import { TelegramService } from "./services/telegram.service";
+import { RssService } from "./services/rss.service";
 
 export type Variables = {
   AUTH_SECRET: string;
@@ -49,8 +50,10 @@ export const initLayers = async () => {
       baseLogger: new Logger(LogLevel.INFO),
     },
   );
+  telegramClient.setParseMode("markdown");
   await telegramClient.connect();
-  const telegramService = new TelegramService(telegramClient);
+  const rssService = new RssService();
+  const telegramService = new TelegramService(telegramClient, rssService);
 
   const mongoClient = new MongoClient(MONGO_URI);
   const db = mongoClient.db(MONGO_DB);

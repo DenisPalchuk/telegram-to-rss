@@ -1,5 +1,5 @@
 @url = http://localhost:3000
-@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI5OWQzZGE3My03YjVjLTRhOTQtOGQyYy1hM2UxNTFmNDk1OTgiLCJpYXQiOjE3MzA2NzAyNDIsImV4cCI6MTczMDc1NjY0MiwiZW1haWwiOiJ0ZXN0QHRlc3QuY29tIn0.KYGumXofMwXkBSW1UY1564q4_PgfS1z9GnWtsoP9Fqc
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI5OWQzZGE3My03YjVjLTRhOTQtOGQyYy1hM2UxNTFmNDk1OTgiLCJpYXQiOjE3MzEwMTIzNzUsImV4cCI6MTczMTA5ODc3NSwiZW1haWwiOiJ0ZXN0QHRlc3QuY29tIn0.8HR5fy3_25i055rnSLtBw8ZB0XUX8XyY6c3RMUt-PqY
 
 # Sign Up
 POST {{url}}/auth/signup
@@ -30,7 +30,12 @@ Authorization: Bearer {{token}}
 }
 
 ###
-GET {{url}}/channels/nikitonsky_pub/posts
+GET {{url}}/channels/seeallochnaya/posts
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+### RSS
+GET {{url}}/channels/seeallochnaya/posts/rss
 Content-Type: application/json
 Authorization: Bearer {{token}}
 
