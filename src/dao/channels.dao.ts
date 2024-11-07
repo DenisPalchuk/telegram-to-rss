@@ -25,4 +25,8 @@ export class ChannelsDao {
       channelId,
     });
   }
+
+  async getAll() {
+    return this.chanelsCollection.find().toArray();
+  }
 }

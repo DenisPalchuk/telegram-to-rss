@@ -61,7 +61,7 @@ export const initLayers = async () => {
   const channelsDao = new ChannelsDao(db);
   const tokenService = new TokenService(AUTH_SECRET);
   const usersService = new UsersService(usersDao, tokenService);
-  const channelsService = new ChannelsService(channelsDao);
+  const channelsService = new ChannelsService(channelsDao, telegramService);
 
   return {
     usersService,

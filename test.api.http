@@ -1,4 +1,4 @@
-@url = http://localhost:3000
+@url = http://localhost:3001
 @token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI5OWQzZGE3My03YjVjLTRhOTQtOGQyYy1hM2UxNTFmNDk1OTgiLCJpYXQiOjE3MzEwMTIzNzUsImV4cCI6MTczMTA5ODc3NSwiZW1haWwiOiJ0ZXN0QHRlc3QuY29tIn0.8HR5fy3_25i055rnSLtBw8ZB0XUX8XyY6c3RMUt-PqY
 
 # Sign Up
@@ -39,6 +39,12 @@ GET {{url}}/channels/seeallochnaya/posts/rss
 Content-Type: application/json
 Authorization: Bearer {{token}}
 
+### refresh RSS
+POST {{url}}/channels/posts/refresh
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+
 
 ###
 POST {{url}}/telegram
@@ -46,3 +52,6 @@ Content-Type: application/json
 Authorization: Bearer {{token}}
 
 {}
+
+### RSS
+GET {{url}}/rss/6727e9978788dc111e55d454/nikitonsky_pub

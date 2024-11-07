@@ -5,7 +5,7 @@ import { TokenService } from "./token.service";
 export class UsersService {
   constructor(
     private readonly usersDao: UsersDao,
-    private readonly tokenService: TokenService,
+    private readonly tokenService: TokenService
   ) {}
 
   async register(email: string, password: string): Promise<string | null> {
@@ -13,7 +13,7 @@ export class UsersService {
     const hash = await bcrypt.hash(password, salt);
     const uuid = crypto.randomUUID();
 
-    const result = await this.usersDao.create(uuid, email, hash);
+    const result = await this.usersDao.create(email, hash);
 
     if (!result.acknowledged) {
       return null;
@@ -34,6 +34,10 @@ export class UsersService {
       return null;
     }
 
-    return this.tokenService.generateToken(email, user.id);
+    return this.tokenService.generateToken(email, user._id.toString());
+  }
+
+  async getUserById(id: string) {
+    return this.usersDao.getOneById(id);
   }
 }

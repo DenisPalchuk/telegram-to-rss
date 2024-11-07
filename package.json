@@ -16,6 +16,7 @@
     "feed": "^4.2.2",
     "jsonwebtoken": "^9.0.2",
     "mongodb": "^6.10.0",
+    "node-schedule": "^2.1.1",
     "telegram": "^2.26.6",
     "tsx": "^4.19.2"
   },
@@ -24,6 +25,7 @@
     "@types/express": "^5.0.0",
     "@types/jsonwebtoken": "^9.0.7",
     "@types/node": "^22.8.7",
+    "@types/node-schedule": "^2.1.7",
     "input": "^1.0.1",
     "prettier": "^3.3.3",
     "typescript": "^5.6.3"

@@ -1,4 +1,4 @@
-import { Collection, Db } from "mongodb";
+import { Collection, Db, ObjectId, WithId } from "mongodb";
 import { User } from "../entities/user";
 
 export class UsersDao {
@@ -7,15 +7,18 @@ export class UsersDao {
     this.usersCollection = db.collection<User>("users");
   }
 
-  async create(uuid: string, email: string, passwordHash: string) {
+  async create(email: string, passwordHash: string) {
     return this.usersCollection.insertOne({
-      id: uuid,
       email,
       password: passwordHash,
     });
   }
 
   async readOne(email: string) {
-    return this.usersCollection.findOne<User>({ email });
+    return this.usersCollection.findOne<WithId<User>>({ email });
+  }
+
+  async getOneById(id: string) {
+    return this.usersCollection.findOne<User>({ _id: new ObjectId(id) });
   }
 }

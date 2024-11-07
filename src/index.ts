@@ -1,12 +1,18 @@
 import express from "express";
+import schedule from "node-schedule";
 import { getAuthRouter } from "./routers/auth.router";
 import { getChannelsRouter } from "./routers/channels.router";
 import { initLayers } from "./init";
 import { errorHandler } from "./routers/middlewares/errors.middleware";
+import fs from "fs";
+import { getRssRouter } from "./routers/rss.router";
 
 const app = express();
 
 initLayers().then((context) => {
+  if (!fs.existsSync("./rss")) {
+    fs.mkdirSync("./rss");
+  }
   app.use(express.json());
   app.use(errorHandler);
   app.get("/", (req, res) => {
@@ -18,8 +24,13 @@ initLayers().then((context) => {
     "/channels",
     getChannelsRouter(context.channelsService, context.telegramService)
   );
+  app.use("/rss", getRssRouter(context.usersService));
 
   app.listen(3001);
+
+  // schedule.scheduleJob("5 * * * *", function () {
+  //   console.log("The answer to life, the universe, and everything!");
+  // });
 });
 
 export default app;

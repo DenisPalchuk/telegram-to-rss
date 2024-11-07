@@ -2,7 +2,6 @@ import express from "express";
 import { verifyAuth } from "./middlewares/auth.middleware";
 import { ChannelsService } from "../services/channels.service";
 import { TelegramService } from "../services/telegram.service";
-import { RssService } from "../services/rss.service";
 
 export const getChannelsRouter = (
   channelsService: ChannelsService,
@@ -11,7 +10,7 @@ export const getChannelsRouter = (
   const router = express.Router();
 
   // router.use(verifyAuth());
-  router.post("/", async (req, res, next) => {
+  router.post("/", verifyAuth(), async (req, res, next) => {
     try {
       const user = req.user;
       const result = await channelsService.addChannel(
@@ -28,7 +27,7 @@ export const getChannelsRouter = (
     }
   });
 
-  router.get("/:channelId/posts", async (req, res, next) => {
+  router.get("/:channelId/posts", verifyAuth(), async (req, res, next) => {
     try {
       const channelId = req.params.channelId;
       const posts = await telegramService.getLastMessages(channelId);
@@ -69,6 +68,16 @@ export const getChannelsRouter = (
       res.setHeader("Content-type", "text/xml;charset=UTF-8");
       res.send(xml);
 
+      next();
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  router.post("/posts/refresh", async (req, res, next) => {
+    try {
+      await channelsService.refreshAllChannels();
+      res.send("Refreshed");
       next();
     } catch (error) {
       next(error);

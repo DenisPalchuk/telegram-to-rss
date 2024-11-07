@@ -1,7 +1,13 @@
+networks:
+  rss-telegram:
+    driver: bridge
+
 services:
   mongo:
     image: mongo
     restart: always
+    networks:
+      - rss-telegram
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: example
@@ -12,6 +18,8 @@ services:
     ports:
       - 3001:3001
     working_dir: /app
+    networks:
+      - rss-telegram
     volumes:
       - .:/app
     environment:
