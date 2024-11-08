@@ -31,6 +31,7 @@ services:
       TELEGRAM_API_ID: ${TELEGRAM_API_ID}
       TELEGRAM_API_HASH: ${TELEGRAM_API_HASH}
       TELEGRAM_SESSION_KEY: ${TELEGRAM_SESSION_KEY}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
     command: sh -c "npm install && npm run start:dev"
     depends_on:
       - mongo

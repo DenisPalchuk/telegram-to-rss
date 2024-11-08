@@ -2,11 +2,14 @@ import { TelegramClient } from "telegram";
 import { Api } from "telegram/tl";
 import { RssService } from "./rss.service";
 import { Item } from "feed";
+import { AIService } from "./ai.service";
+import { sleep } from "telegram/Helpers";
 
 export class TelegramService {
   constructor(
     readonly client: TelegramClient,
-    private readonly rssService: RssService
+    private readonly aiService: AIService,
+    private readonly rssService: RssService,
   ) {}
 
   async getLastMessages(channelId: string): Promise<Api.Message[]> {
@@ -20,7 +23,7 @@ export class TelegramService {
         maxId: 0,
         minId: 0,
         hash: BigInt(0),
-      })
+      }),
     );
 
     return (result.messages as Api.Message[]).map((message) => {
@@ -32,11 +35,14 @@ export class TelegramService {
   }
 
   async getXmlFeedFromMessages(messages: Api.Message[]) {
-    const items: Item[] = messages.map((message) => {
+    const items: Item[] = [];
+    for (const message of messages) {
       const text = message.text;
-
-      // TODO: replace this with better solution
-      const title = text.substring(0, 80);
+      console.log(text);
+      await sleep(3000);
+      const result = await this.aiService.summarizeTextToOneSentense(text);
+      console.log("summarization result: ", result);
+      const title = result;
 
       const item: Item = {
         title: title,
@@ -50,8 +56,8 @@ export class TelegramService {
         // } : undefined,
         content: text,
       };
-      return item;
-    });
+      items.push(item);
+    }
 
     return this.rssService.getXmlFeedFromItems(
       {
@@ -61,7 +67,7 @@ export class TelegramService {
         link: "feedLink",
         language: "en",
       },
-      items
+      items,
     );
   }
 

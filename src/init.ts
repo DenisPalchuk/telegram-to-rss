@@ -9,6 +9,7 @@ import { LogLevel } from "telegram/extensions/Logger";
 import { StringSession } from "telegram/sessions";
 import { TelegramService } from "./services/telegram.service";
 import { RssService } from "./services/rss.service";
+import { AIService } from "./services/ai.service";
 
 export type Variables = {
   AUTH_SECRET: string;
@@ -25,6 +26,7 @@ export const initLayers = async () => {
   const TELEGRAM_API_ID = process.env.TELEGRAM_API_ID;
   const TELEGRAM_API_HASH = process.env.TELEGRAM_API_HASH;
   const TELEGRAM_SESSION_KEY = process.env.TELEGRAM_SESSION_KEY;
+  const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
 
   if (
     !MONGO_DB ||
@@ -32,8 +34,10 @@ export const initLayers = async () => {
     !AUTH_SECRET ||
     !TELEGRAM_API_ID ||
     !TELEGRAM_API_HASH ||
-    !TELEGRAM_SESSION_KEY
+    !TELEGRAM_SESSION_KEY ||
+    !ANTHROPIC_API_KEY
   ) {
+    
     throw new Error("ENV variables are not set properly");
   }
 
@@ -53,13 +57,19 @@ export const initLayers = async () => {
   telegramClient.setParseMode("markdown");
   await telegramClient.connect();
   const rssService = new RssService();
-  const telegramService = new TelegramService(telegramClient, rssService);
+  const aiService = new AIService(ANTHROPIC_API_KEY);
+  const telegramService = new TelegramService(
+    telegramClient,
+    aiService,
+    rssService,
+  );
 
   const mongoClient = new MongoClient(MONGO_URI);
   const db = mongoClient.db(MONGO_DB);
   const usersDao = new UsersDao(db);
   const channelsDao = new ChannelsDao(db);
   const tokenService = new TokenService(AUTH_SECRET);
+
   const usersService = new UsersService(usersDao, tokenService);
   const channelsService = new ChannelsService(channelsDao, telegramService);
 
