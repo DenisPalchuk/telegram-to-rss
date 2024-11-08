@@ -4,6 +4,8 @@ import { initLayers } from "./init";
 import { errorHandler } from "./routers/middlewares/errors.middleware";
 import fs from "fs";
 import { getRssRouter } from "./routers/rss.router";
+import { Channel } from "diagnostics_channel";
+import { ChannelsService } from "./services/channels.service";
 
 const app = express();
 
@@ -25,9 +27,14 @@ initLayers().then((context) => {
 
   app.listen(3001);
 
-  // schedule.scheduleJob("5 * * * *", function () {
-  //   console.log("The answer to life, the universe, and everything!");
-  // });
+  schedule.scheduleJob(
+    "* 6 * * *",
+    async function (channelsService: ChannelsService) {
+      console.log("Refreshing all channels");
+      await channelsService.refreshAllChannels();
+      console.log("All channels refreshed");
+    }.bind(null, context.channelsService)
+  );
 });
 
 export default app;
