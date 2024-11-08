@@ -12,13 +12,12 @@ export class AIService {
       messages: [
         {
           role: "user",
-          content: `Суммаризируй следующий текст в одно предложение(дай название): ${question}`,
+          content: `Суммаризируй следующий текст в одно предложение до 100 символов: ${question}`,
         },
       ],
       max_tokens: 1000,
     });
 
-    console.log(result);
     return this.getTextFromAntropicResultContent(result.content);
   }
 

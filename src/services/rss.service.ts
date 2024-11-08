@@ -1,7 +1,7 @@
 import { Feed, Item } from "feed";
 import { FeedInfo } from "../entities/feed";
 import { Api } from "telegram";
-import { TelegramService } from "./telegram.service";
+import { TelegramSDK } from "./telegram.service";
 
 export class RssService {
   constructor() {}

@@ -1,5 +1,4 @@
 import { UsersService } from "./services/users.service";
-import { TokenService } from "./services/token.service";
 import { ChannelsService } from "./services/channels.service";
 import { ChannelsDao } from "./dao/channels.dao";
 import { UsersDao } from "./dao/user.dao";
@@ -7,9 +6,11 @@ import { MongoClient } from "mongodb";
 import { Logger, TelegramClient } from "telegram";
 import { LogLevel } from "telegram/extensions/Logger";
 import { StringSession } from "telegram/sessions";
-import { TelegramService } from "./services/telegram.service";
+import { TelegramSDK } from "./services/telegram.service";
 import { RssService } from "./services/rss.service";
 import { AIService } from "./services/ai.service";
+import { MessagesDao } from "./dao/messages.dao";
+import { TelegramBot } from "./bot/bot";
 
 export type Variables = {
   AUTH_SECRET: string;
@@ -27,6 +28,8 @@ export const initLayers = async () => {
   const TELEGRAM_API_HASH = process.env.TELEGRAM_API_HASH;
   const TELEGRAM_SESSION_KEY = process.env.TELEGRAM_SESSION_KEY;
   const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
+  const BOT_CLIENT_TOKEN = process.env.BOT_CLIENT_TOKEN;
+  const RSS_FEED_URL = process.env.RSS_FEED_URL;
 
   if (
     !MONGO_DB ||
@@ -35,15 +38,15 @@ export const initLayers = async () => {
     !TELEGRAM_API_ID ||
     !TELEGRAM_API_HASH ||
     !TELEGRAM_SESSION_KEY ||
-    !ANTHROPIC_API_KEY
+    !ANTHROPIC_API_KEY ||
+    !BOT_CLIENT_TOKEN ||
+    !RSS_FEED_URL
   ) {
-    
     throw new Error("ENV variables are not set properly");
   }
 
   const stringSession = new StringSession(TELEGRAM_SESSION_KEY);
 
-  // TODO: replace it with TelegramService and Telegram SDK
   const telegramClient = new TelegramClient(
     stringSession,
     parseInt(TELEGRAM_API_ID, 10),
@@ -52,31 +55,44 @@ export const initLayers = async () => {
       systemVersion: "1.0",
       connectionRetries: 5,
       baseLogger: new Logger(LogLevel.INFO),
-    },
+    }
   );
   telegramClient.setParseMode("markdown");
   await telegramClient.connect();
-  const rssService = new RssService();
-  const aiService = new AIService(ANTHROPIC_API_KEY);
-  const telegramService = new TelegramService(
-    telegramClient,
-    aiService,
-    rssService,
-  );
 
+  const telegramSdk = new TelegramSDK(telegramClient);
+
+  // DAOs
   const mongoClient = new MongoClient(MONGO_URI);
   const db = mongoClient.db(MONGO_DB);
   const usersDao = new UsersDao(db);
   const channelsDao = new ChannelsDao(db);
-  const tokenService = new TokenService(AUTH_SECRET);
+  const messagesDao = new MessagesDao(db);
 
-  const usersService = new UsersService(usersDao, tokenService);
-  const channelsService = new ChannelsService(channelsDao, telegramService);
+  // Services
+  const rssService = new RssService();
+  const aiService = new AIService(ANTHROPIC_API_KEY);
+  const usersService = new UsersService(usersDao);
+  const channelsService = new ChannelsService(
+    channelsDao,
+    messagesDao,
+    rssService,
+    telegramSdk,
+    aiService
+  );
+
+  const bot = new TelegramBot(
+    BOT_CLIENT_TOKEN,
+    RSS_FEED_URL,
+    usersService,
+    channelsService
+  );
+  await bot.setupCommands();
+  bot.start();
 
   return {
     usersService,
     channelsService,
-    tokenService,
-    telegramService,
+    telegramService: telegramSdk,
   };
 };

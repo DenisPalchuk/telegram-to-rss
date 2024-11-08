@@ -1,7 +1,5 @@
 import express from "express";
 import schedule from "node-schedule";
-import { getAuthRouter } from "./routers/auth.router";
-import { getChannelsRouter } from "./routers/channels.router";
 import { initLayers } from "./init";
 import { errorHandler } from "./routers/middlewares/errors.middleware";
 import fs from "fs";
@@ -19,11 +17,10 @@ initLayers().then((context) => {
     res.send("Hello Express!");
   });
 
-  app.use("/auth", getAuthRouter(context.usersService));
-  app.use(
-    "/channels",
-    getChannelsRouter(context.channelsService, context.telegramService)
-  );
+  // app.use(
+  //   "/channels",
+  //   getChannelsRouter(context.channelsService, context.telegramService)
+  // );
   app.use("/rss", getRssRouter(context.usersService));
 
   app.listen(3001);

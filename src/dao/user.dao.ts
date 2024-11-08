@@ -7,15 +7,14 @@ export class UsersDao {
     this.usersCollection = db.collection<User>("users");
   }
 
-  async create(email: string, passwordHash: string) {
+  async create(tgId: number) {
     return this.usersCollection.insertOne({
-      email,
-      password: passwordHash,
+      tgId,
     });
   }
 
-  async readOne(email: string) {
-    return this.usersCollection.findOne<WithId<User>>({ email });
+  async getOneByTgId(tgId: number) {
+    return this.usersCollection.findOne<WithId<User>>({ tgId });
   }
 
   async getOneById(id: string) {

@@ -16,11 +16,19 @@ export const getRssRouter = (usersService: UsersService) => {
         return;
       }
 
-      const escapedChannelId = channelId.replace(/[^a-zA-Z0-9-_]/g, "");
+      if (!channelId.endsWith(".xml")) {
+        res.status(400).send("Invalid channel ID");
+        return;
+      }
+
+      const escapedChannelIdFileName = channelId.replace(
+        /[^a-zA-Z0-9-_.]/g,
+        ""
+      );
 
       const xml = await fs.readFile(
-        path.join(__dirname, `../../rss/${escapedChannelId}.xml`),
-        "utf-8",
+        path.join(__dirname, `../../rss/${escapedChannelIdFileName}`),
+        "utf-8"
       );
 
       res.setHeader("Content-type", "text/xml;charset=UTF-8");
