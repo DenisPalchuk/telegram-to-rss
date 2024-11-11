@@ -109,7 +109,7 @@ export class TelegramBot {
       const feedUrls = channels
         .map(
           (c) =>
-            `${c.channelTitle}: \`${this.rssUrl}/${c.userId}/${c.channelId}.xml\``
+            `${c.channelTitle.replaceAll("-", "\\-")}: \`${this.rssUrl}/${c.userId}/${c.channelId}.xml\``
         )
         .join("\n");
 
