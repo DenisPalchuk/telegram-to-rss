@@ -128,7 +128,7 @@ export class ChannelsService {
       title: message.title,
       link: "https://t.me/c/" + message.channelId + "/" + message.messageId,
       date: new Date(message.dateTime * 1000),
-      content: message.text,
+      content: message.text.replace(/\n/g, "<br />"),
     }));
 
     const xmlFeed = this.rssService.getXmlFeedFromItems(
