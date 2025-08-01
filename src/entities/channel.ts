@@ -1,5 +1,3 @@
-import { ObjectId } from "mongodb";
-
 export interface Channel {
   userId: string;
   channelId: string;
@@ -13,4 +11,5 @@ export interface Message {
   title: string;
   text: string;
   dateTime: number;
+  imageFileNames?: string[];
 }

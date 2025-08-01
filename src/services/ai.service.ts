@@ -6,7 +6,7 @@ export class AIService {
   constructor(apiKey: string) {
     this.antropic = new Antropic({ apiKey });
   }
-  async summarizeTextToOneSentense(question: string) {
+  async summarizeTextToOneSentence(question: string) {
     const result = await this.antropic.messages.create({
       model: "claude-3-5-haiku-latest",
       messages: [

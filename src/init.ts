@@ -29,7 +29,9 @@ export const initLayers = async () => {
   const TELEGRAM_SESSION_KEY = process.env.TELEGRAM_SESSION_KEY;
   const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
   const BOT_CLIENT_TOKEN = process.env.BOT_CLIENT_TOKEN;
-  const RSS_FEED_URL = process.env.RSS_FEED_URL;
+  const BASE_URL = process.env.BASE_URL;
+  const RSS_FEED_URL = `${BASE_URL}/rss`;
+  const IMAGES_BASE_URL = `${BASE_URL}/public`;
 
   if (
     !MONGO_DB ||
@@ -78,7 +80,8 @@ export const initLayers = async () => {
     messagesDao,
     rssService,
     telegramSdk,
-    aiService
+    aiService,
+    IMAGES_BASE_URL
   );
 
   const bot = new TelegramBot(
