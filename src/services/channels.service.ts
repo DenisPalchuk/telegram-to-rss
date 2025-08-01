@@ -210,6 +210,8 @@ export class ChannelsService {
       };
     });
 
+    console.log(`Total items to write: ${oldItems.length + newItems.length}`);
+
     const xmlFeed = this.rssService.getXmlFeedFromItems(
       {
         id: channel.channelId,
@@ -220,6 +222,8 @@ export class ChannelsService {
       },
       [...oldItems, ...newItems]
     );
+
+    console.log(`Writing XML feed for channel ${channel.channelId}`);
 
     await fs.promises.writeFile(`rss/${channel.channelId}.xml`, xmlFeed, {
       flag: "w+",
