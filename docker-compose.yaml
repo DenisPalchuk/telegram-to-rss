@@ -35,7 +35,7 @@ services:
       TELEGRAM_SESSION_KEY: ${TELEGRAM_SESSION_KEY}
       BOT_CLIENT_TOKEN: ${BOT_CLIENT_TOKEN}
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
-      RSS_FEED_URL: ${RSS_FEED_URL}
+      BASE_URL: ${BASE_URL}
     command: sh -c "npm install && npm run start:dev"
     depends_on:
       - mongo
