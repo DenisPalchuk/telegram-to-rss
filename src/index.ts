@@ -5,7 +5,6 @@ import { errorHandler } from "./routers/middlewares/errors.middleware";
 import fs from "fs";
 import path from "path";
 import { getRssRouter } from "./routers/rss.router";
-import { Channel } from "diagnostics_channel";
 import { ChannelsService } from "./services/channels.service";
 
 const app = express();
@@ -34,14 +33,10 @@ initLayers().then((context) => {
         ? requestedPath.slice(1)
         : requestedPath;
 
-      // Check for path traversal attempts
-      if (requestedPath.includes("..") || path.isAbsolute(requestedPath)) {
-        return res.status(403).send("Access denied");
-      }
-
-      // Validate filename: only alphanumeric + exactly one dot for extension
-      const fileNameRegex = /^[a-zA-Z0-9]+\.[a-zA-Z0-9]+$/;
-      if (!fileNameRegex.test(fileName)) {
+      // Validate filename: must be a UUID with .jpg extension
+      const uuidJpgRegex =
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.jpg$/i;
+      if (!uuidJpgRegex.test(fileName)) {
         return res.status(403).send("Invalid filename");
       }
 
