@@ -17,30 +17,38 @@ initLayers().then((context) => {
   if (!fs.existsSync("./public")) {
     fs.mkdirSync("./public");
   }
-  
+
   app.use(express.json());
   app.use(errorHandler);
-  
+
   // Serve static files from public directory with security restrictions
-  app.use('/public', (req: Request, res: Response, next: NextFunction) => {
-    const requestedPath = path.normalize(req.path);
-    
-    // Remove leading slash for validation
-    const fileName = requestedPath.startsWith('/') ? requestedPath.slice(1) : requestedPath;
-    
-    // Check for path traversal attempts
-    if (requestedPath.includes('..') || path.isAbsolute(requestedPath)) {
-      return res.status(403).send('Access denied');
-    }
-    
-    // Validate filename: only alphanumeric + exactly one dot for extension
-    const fileNameRegex = /^[a-zA-Z0-9]+\.[a-zA-Z0-9]+$/;
-    if (!fileNameRegex.test(fileName)) {
-      return res.status(403).send('Invalid filename');
-    }
-    
-    next();
-  }, express.static(path.join(process.cwd(), 'public')));
+  app.use(
+    "/public",
+    (req: Request, res: Response, next: NextFunction) => {
+      const requestedPath = path.normalize(req.path);
+
+      console.log(`Requested path: ${requestedPath}`);
+
+      // Remove leading slash for validation
+      const fileName = requestedPath.startsWith("/")
+        ? requestedPath.slice(1)
+        : requestedPath;
+
+      // Check for path traversal attempts
+      if (requestedPath.includes("..") || path.isAbsolute(requestedPath)) {
+        return res.status(403).send("Access denied");
+      }
+
+      // Validate filename: only alphanumeric + exactly one dot for extension
+      const fileNameRegex = /^[a-zA-Z0-9]+\.[a-zA-Z0-9]+$/;
+      if (!fileNameRegex.test(fileName)) {
+        return res.status(403).send("Invalid filename");
+      }
+
+      next();
+    },
+    express.static(path.join(process.cwd(), "public"))
+  );
   app.get("/", (req: Request, res: Response) => {
     res.send("Hello Express!");
   });
