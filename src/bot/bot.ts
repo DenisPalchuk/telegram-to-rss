@@ -109,12 +109,12 @@ export class TelegramBot {
       const feedUrls = channels
         .map(
           (c) =>
-            `${c.channelTitle.replaceAll("-", "\\-").replaceAll("|", "\\|")}: \`${this.rssUrl}/${c.userId}/${c.channelId}.xml\``
+            `${c.channelTitle.replaceAll("-", "\\-").replaceAll("|", "\\|")}: <code>\`${this.rssUrl}/${c.userId}/${c.channelId}.xml\`</code>`
         )
         .join("\n");
 
       await ctx.reply(`Your RSS feeds:\n${feedUrls}`, {
-        parse_mode: "MarkdownV2",
+        parse_mode: "HTML",
       });
     });
 
