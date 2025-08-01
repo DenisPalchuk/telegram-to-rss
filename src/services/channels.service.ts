@@ -159,7 +159,7 @@ export class ChannelsService {
         content: contentWithImages,
         ...(imageFileNames.length > 0 && {
           image: {
-            url: `http://localhost:3001${imageFileNames[0]}`,
+            url: `${this.IMAGES_BASE_URL}/${imageFileNames[0]}`,
             type: "image/jpeg",
           },
         }),
@@ -203,7 +203,7 @@ export class ChannelsService {
         content: contentWithImages,
         ...(imageFileNames.length > 0 && {
           image: {
-            url: `http://localhost:3001${contentWithImages[0]}`,
+            url: `${this.IMAGES_BASE_URL}/${imageFileNames[0]}`,
             type: "image/jpeg",
           },
         }),
@@ -211,6 +211,7 @@ export class ChannelsService {
     });
 
     console.log(`Total items to write: ${oldItems.length + newItems.length}`);
+    console.log("POSTS:", JSON.stringify([...oldItems, ...newItems], null, 2));
 
     const xmlFeed = this.rssService.getXmlFeedFromItems(
       {
