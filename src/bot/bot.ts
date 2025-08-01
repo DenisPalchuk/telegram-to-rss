@@ -160,6 +160,9 @@ export class TelegramBot {
         await ctx.reply(
           "Failed to add channel. Please check the channel ID and try again."
         );
+        if (error instanceof Error) {
+          await ctx.reply("Error adding channel: " + error.message);
+        }
       }
 
       ctx.session.waitingForChannel = false;

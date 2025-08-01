@@ -52,7 +52,9 @@ export class TelegramSDK {
       message.media.photo instanceof Api.Photo
     ) {
       try {
-        const buffer = await this.client.downloadMedia(message.media, {});
+        const buffer = await this.client.downloadMedia(message.media, {
+          progressCallback: console.log,
+        });
         if (buffer) {
           const fileName = `${randomUUID()}.jpg`;
           const filePath = path.join(process.cwd(), "public", fileName);
@@ -74,7 +76,9 @@ export class TelegramSDK {
       // Check if it's an image by looking at mime type
       if (doc.mimeType && doc.mimeType.startsWith("image/")) {
         try {
-          const buffer = await this.client.downloadMedia(message.media, {});
+          const buffer = await this.client.downloadMedia(message.media, {
+            progressCallback: console.log,
+          });
           if (buffer) {
             const extension = doc.mimeType.split("/")[1] || "jpg";
             const fileName = `${randomUUID()}.${extension}`;
