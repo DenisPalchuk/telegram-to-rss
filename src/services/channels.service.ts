@@ -141,12 +141,7 @@ export class ChannelsService {
         const imageHtml = imageFileNames
           .map(
             (url: string) =>
-              `<media:content 
-        xmlns:media="http://search.yahoo.com/mrss/" 
-        url="${this.IMAGES_BASE_URL}/${url}"
-        medium="image" 
-        type="image/jpeg" 
-        />`
+              `<img src="${this.IMAGES_BASE_URL}/${url}" alt="${url}" />`
           )
           .join("");
         contentWithImages = `${text}<br/>${imageHtml}`;
@@ -185,12 +180,7 @@ export class ChannelsService {
         const imageHtml = imageFileNames
           .map(
             (url: string) =>
-              `<media:content 
-        xmlns:media="http://search.yahoo.com/mrss/" 
-        url="${this.IMAGES_BASE_URL}/${url}"
-        medium="image" 
-        type="image/jpeg" 
-        />`
+              `<img src="${this.IMAGES_BASE_URL}/${url}" alt="${url}" />`
           )
           .join("");
         contentWithImages = `${contentWithImages}<br/>${imageHtml}`;
