@@ -58,6 +58,7 @@ initLayers().then(async (context) => {
 
   console.log("Refreshing all channels on startup");
   await context.channelsService.refreshAllChannels();
+  console.log("All channels refreshed after startup");
 
   schedule.scheduleJob(
     "* 6 * * *",
