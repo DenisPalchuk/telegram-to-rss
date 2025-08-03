@@ -200,9 +200,6 @@ export class ChannelsService {
       };
     });
 
-    console.log(`Total items to write: ${oldItems.length + newItems.length}`);
-    console.log("POSTS:", JSON.stringify([...oldItems, ...newItems], null, 2));
-
     const xmlFeed = this.rssService.getXmlFeedFromItems(
       {
         id: channel.channelId,
