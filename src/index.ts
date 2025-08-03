@@ -9,7 +9,7 @@ import { ChannelsService } from "./services/channels.service";
 
 const app = express();
 
-initLayers().then((context) => {
+initLayers().then(async (context) => {
   if (!fs.existsSync("./rss")) {
     fs.mkdirSync("./rss");
   }
@@ -55,6 +55,9 @@ initLayers().then((context) => {
   app.use("/rss", getRssRouter(context.usersService));
 
   app.listen(3001);
+
+  console.log("Refreshing all channels on startup");
+  await context.channelsService.refreshAllChannels();
 
   schedule.scheduleJob(
     "* 6 * * *",
