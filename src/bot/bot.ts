@@ -106,11 +106,12 @@ export class TelegramBot {
       }
 
       const channelsList = channels
-        .map((c) => `- ${c.channelId} (${c.channelTitle})`)
+        .map((c) => `- <code>${c.channelId}</code> (${c.channelTitle})`)
         .join("\n");
       ctx.session.waitingForChannelRemoval = true;
       await ctx.reply(
-        `Your channels:\n${channelsList}\n\nPlease send me the channel ID you want to remove (e.g., ${channels[0].channelId})`
+        `Your channels:\n${channelsList}\n\nTap on any channel ID to copy it, then send it to remove the channel.`,
+        { parse_mode: "HTML" }
       );
     });
 

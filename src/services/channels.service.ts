@@ -12,6 +12,7 @@ import {
   filterNewMessageGroups,
   squashMessageGroup,
 } from "./message-grouping.helper";
+import {Api} from "telegram";
 
 export class ChannelsService {
   constructor(
@@ -32,12 +33,12 @@ export class ChannelsService {
       return;
     }
 
-    if (!channelInfo || !channelInfo.chats[0].title) {
+    if (!channelInfo || !(channelInfo.chats[0] as Api.Chat).title) {
       console.error("Channel not found");
       return;
     }
 
-    const channelTitle = channelInfo.chats[0].title;
+    const channelTitle = (channelInfo.chats[0] as Api.Chat).title;
 
     const channel = await this.channelsDao.create(
       channelId,
@@ -150,14 +151,23 @@ export class ChannelsService {
         allImageFileNames
       );
 
-      // Generate title from combined text
-      const title = await this.aiService.summarizeTextToOneSentence(
-        squashedMessage.text
-      );
-      console.log(`Generated title for ${groupLabel}: ${title}`);
+      const telegramLink = `https://t.me/c/${firstMessage.chatId}/${squashedMessage.linkMessageId}`;
+      const hasText = squashedMessage.text.trim().length > 0;
 
-      // Create content with all images
-      let contentWithImages = squashedMessage.text.replace(/\n/g, "<br />");
+      let title: string;
+      if (hasText) {
+        title = await this.aiService.summarizeTextToOneSentence(
+          squashedMessage.text
+        );
+        console.log(`Generated title for ${groupLabel}: ${title}`);
+      } else {
+        title = "Message without text";
+        console.log(`No text in ${groupLabel}, skipping AI summarization`);
+      }
+
+      let contentWithImages = hasText
+        ? squashedMessage.text.replace(/\n/g, "<br />")
+        : `<a href="${telegramLink}">Open in Telegram</a>`;
       if (squashedMessage.imageFileNames.length > 0) {
         const imageHtml = squashedMessage.imageFileNames
           .map(
