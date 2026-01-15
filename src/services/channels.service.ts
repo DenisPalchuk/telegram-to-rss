@@ -58,6 +58,25 @@ export class ChannelsService {
     return this.channelsDao.getAllByUserId(userId);
   }
 
+  async removeChannel(channelId: string, userId: string) {
+    const channel = await this.channelsDao.readOne(channelId, userId);
+    if (!channel) {
+      return false;
+    }
+
+    await this.messagesDao.deleteByChannelId(channelId);
+
+    await this.channelsDao.delete(channelId, userId);
+
+    try {
+      await fs.promises.unlink(`rss/${channelId}.xml`);
+    } catch (error) {
+      console.error(`Failed to delete RSS file for channel ${channelId}`, error);
+    }
+
+    return true;
+  }
+
   async refreshAllChannels() {
     const allChannels = await this.channelsDao.getAll();
     if (!Array.isArray(allChannels)) {

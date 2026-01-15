@@ -4,6 +4,7 @@ import { ChannelsService } from "../services/channels.service";
 
 interface SessionData {
   waitingForChannel?: boolean;
+  waitingForChannelRemoval?: boolean;
 }
 
 type MyContext = Context & SessionFlavor<SessionData>;
@@ -26,6 +27,7 @@ export class TelegramBot {
       session({
         initial: (): SessionData => ({
           waitingForChannel: false,
+          waitingForChannelRemoval: false,
         }),
       })
     );
@@ -85,6 +87,33 @@ export class TelegramBot {
       );
     });
 
+    // Remove channel
+    this.bot.command("remove", async (ctx) => {
+      const userId = ctx.from?.id;
+      if (!userId) return;
+
+      const user = await this.usersService.getUserByTgId(userId);
+      if (!user) return;
+
+      const channels = await this.channelsService.getChannelsByUserId(
+        user._id.toString()
+      );
+      if (!channels?.length) {
+        await ctx.reply(
+          "You don't have any channels yet. Use /add to add one."
+        );
+        return;
+      }
+
+      const channelsList = channels
+        .map((c) => `- ${c.channelId} (${c.channelTitle})`)
+        .join("\n");
+      ctx.session.waitingForChannelRemoval = true;
+      await ctx.reply(
+        `Your channels:\n${channelsList}\n\nPlease send me the channel ID you want to remove (e.g., ${channels[0].channelId})`
+      );
+    });
+
     // Get RSS feed
     this.bot.command("feed", async (ctx) => {
       console.log("feed command");
@@ -118,54 +147,102 @@ export class TelegramBot {
       });
     });
 
-    // Handle channel addition
+    // Handle channel addition and removal
     this.bot.on("message", async (ctx) => {
-      if (!ctx.session.waitingForChannel) return;
       if (!ctx.message?.text) return;
-      let channelId = ctx.message.text.trim();
       const userId = ctx.from?.id;
       if (!userId) return;
 
       const user = await this.usersService.getUserByTgId(userId);
       if (!user) return;
 
-      // Remove "https://t.me/" if present
-      if (channelId.startsWith("https://t.me/")) {
-        channelId = channelId.replace("https://t.me/", "");
-      }
+      // Handle channel addition
+      if (ctx.session.waitingForChannel) {
+        let channelId = ctx.message.text.trim();
 
-      // Remove "@" if present
-      channelId = channelId.replace("@", "");
+        // Remove "https://t.me/" if present
+        if (channelId.startsWith("https://t.me/")) {
+          channelId = channelId.replace("https://t.me/", "");
+        }
 
-      // Validate channelId
-      if (!channelId) {
-        await ctx.reply("Invalid channel link. Please try again.");
-        return;
-      }
+        // Remove "@" if present
+        channelId = channelId.replace("@", "");
 
-      try {
-        const result = await this.channelsService.addChannel(
-          channelId,
-          user._id.toString()
-        );
-        if (!result) {
+        // Validate channelId
+        if (!channelId) {
+          await ctx.reply("Invalid channel link. Please try again.");
+          return;
+        }
+
+        try {
+          const result = await this.channelsService.addChannel(
+            channelId,
+            user._id.toString()
+          );
+          if (!result) {
+            await ctx.reply(
+              "Failed to add channel. Please check the channel ID and try again."
+            );
+            ctx.session.waitingForChannel = false;
+            return;
+          }
+          await ctx.reply(`Channel ${channelId} added successfully!`);
+        } catch (error) {
           await ctx.reply(
             "Failed to add channel. Please check the channel ID and try again."
           );
-          ctx.session.waitingForChannel = false;
-          return;
+          if (error instanceof Error) {
+            await ctx.reply("Error adding channel: " + error.message);
+          }
         }
-        await ctx.reply(`Channel ${channelId} added successfully!`);
-      } catch (error) {
-        await ctx.reply(
-          "Failed to add channel. Please check the channel ID and try again."
-        );
-        if (error instanceof Error) {
-          await ctx.reply("Error adding channel: " + error.message);
-        }
+
+        ctx.session.waitingForChannel = false;
+        return;
       }
 
-      ctx.session.waitingForChannel = false;
+      // Handle channel removal
+      if (ctx.session.waitingForChannelRemoval) {
+        let channelId = ctx.message.text.trim();
+
+        // Remove "https://t.me/" if present
+        if (channelId.startsWith("https://t.me/")) {
+          channelId = channelId.replace("https://t.me/", "");
+        }
+
+        // Remove "@" if present
+        channelId = channelId.replace("@", "");
+
+        // Validate channelId
+        if (!channelId) {
+          await ctx.reply("Invalid channel ID. Please try again.");
+          return;
+        }
+
+        try {
+          const result = await this.channelsService.removeChannel(
+            channelId,
+            user._id.toString()
+          );
+          if (!result) {
+            await ctx.reply(
+              "Channel not found. Please check the channel ID and try again."
+            );
+            ctx.session.waitingForChannelRemoval = false;
+            return;
+          }
+          await ctx.reply(`Channel ${channelId} removed successfully!`);
+        } catch (error) {
+          await ctx.reply(
+            "Failed to remove channel. Please check the channel ID and try again."
+          );
+          if (error instanceof Error) {
+            await ctx.reply("Error removing channel: " + error.message);
+          }
+        }
+
+        ctx.session.waitingForChannelRemoval = false;
+        return;
+      }
     });
   }
 
