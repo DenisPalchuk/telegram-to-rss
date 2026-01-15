@@ -7,6 +7,11 @@ import { AIService } from "./ai.service";
 import { RssService } from "./rss.service";
 import { Channel, Message } from "../entities/channel";
 import { MessagesDao } from "../dao/messages.dao";
+import {
+  organizeMessagesIntoGroups,
+  filterNewMessageGroups,
+  squashMessageGroup,
+} from "./message-grouping.helper";
 
 export class ChannelsService {
   constructor(
@@ -80,94 +85,98 @@ export class ChannelsService {
     const backupMessagesByChannelId =
       await this.messagesDao.getMessagesByChannelId(channel.channelId);
 
-    const newMessages = lastMessages.filter((message) => {
-      return !backupMessagesByChannelId.find(
-        (backupMessage) => backupMessage.messageId === message.id.toString()
-      );
-    });
+    const messageGroups = organizeMessagesIntoGroups(lastMessages);
+
+    const newMessageGroups = filterNewMessageGroups(
+      messageGroups,
+      backupMessagesByChannelId
+    );
 
     console.log(
-      `Need to process new ${newMessages.length} messages for channel ${channel.channelId}`
+      `Need to process ${newMessageGroups.length} message groups for channel ${channel.channelId}`
     );
 
     const newItems: Item[] = [];
     const messagesToBackup: Message[] = [];
-    const processedGroupIds = new Set<string>();
 
-    for (const message of newMessages) {
+    for (const messageGroup of newMessageGroups) {
+      const firstMessage = messageGroup.messages[0];
+      const groupLabel =
+        messageGroup.groupId || `message ${firstMessage.id}`;
+
       console.log(
-        `Processing message ${message.id} for channel ${channel.channelId}`
+        `Processing ${groupLabel} for channel ${channel.channelId}`
       );
-      const text = message.text;
-      await sleep(3000);
 
-      // Handle grouped media (albums) and single images
-      let imageFileNames: string[] = [];
-
-      if (
-        message.groupedId &&
-        !processedGroupIds.has(message.groupedId.toString())
-      ) {
-        // Process media group (album)
-        imageFileNames = await this.telegramService.downloadMediaGroup(
-          newMessages,
-          message.groupedId.toString()
+      // Download media from all messages in the group
+      let allImageFileNames: string[] = [];
+      for (let i = 0; i < messageGroup.messages.length; i++) {
+        if (i > 0) await sleep(3000); // Rate limiting
+        const imageFileNames = await this.telegramService.downloadMessageMedia(
+          messageGroup.messages[i]
         );
-        processedGroupIds.add(message.groupedId.toString());
-        console.log(
-          `Downloaded ${imageFileNames.length} images for media group ${message.groupedId}`
-        );
-      } else if (!message.groupedId) {
-        // Process single message media
-        imageFileNames =
-          await this.telegramService.downloadMessageMedia(message);
-        if (imageFileNames.length > 0) {
-          console.log(
-            `Downloaded ${imageFileNames.length} images for message ${message.id}`
-          );
-        }
-      } else {
-        // Skip if this message is part of an already processed group
-        continue;
+        allImageFileNames.push(...imageFileNames);
       }
 
-      const result = await this.aiService.summarizeTextToOneSentence(text);
-      const title = result;
-      console.log(`generated title for message ${message.id}: ${title}`);
+      if (allImageFileNames.length > 0) {
+        console.log(
+          `Downloaded ${allImageFileNames.length} images for ${groupLabel}`
+        );
+      }
+
+      // Squash the group (combines text and image file names)
+      const squashedMessage = squashMessageGroup(
+        messageGroup,
+        channel.channelId,
+        allImageFileNames
+      );
+
+      // Generate title from combined text
+      const title = await this.aiService.summarizeTextToOneSentence(
+        squashedMessage.text
+      );
+      console.log(`Generated title for ${groupLabel}: ${title}`);
 
       // Create content with all images
-      let contentWithImages = text;
-      if (imageFileNames.length > 0) {
-        const imageHtml = imageFileNames
+      let contentWithImages = squashedMessage.text.replace(/\n/g, "<br />");
+      if (squashedMessage.imageFileNames.length > 0) {
+        const imageHtml = squashedMessage.imageFileNames
           .map(
-            (url: string) =>
+            (url) =>
               `<img src="${this.IMAGES_BASE_URL}/${url}" alt="${url}" />`
           )
           .join("");
-        contentWithImages = `${text}<br/>${imageHtml}`;
+        contentWithImages = `${contentWithImages}<br/>${imageHtml}`;
       }
 
+      // Create RSS item - use linkMessageId for Telegram URL
       const item: Item = {
         title: title,
-        link: "https://t.me/c/" + message.chatId + "/" + message.id,
-        date: new Date(message.date * 1000),
+        link: `https://t.me/c/${firstMessage.chatId}/${squashedMessage.linkMessageId}`,
+        date: new Date(squashedMessage.dateTime * 1000),
         content: contentWithImages,
-        ...(imageFileNames.length > 0 && {
+        ...(squashedMessage.imageFileNames.length > 0 && {
           image: {
-            url: `${this.IMAGES_BASE_URL}/${imageFileNames[0]}`,
+            url: `${this.IMAGES_BASE_URL}/${squashedMessage.imageFileNames[0]}`,
             type: "image/jpeg",
           },
         }),
       };
       newItems.push(item);
 
+      // Backup message - use messageId (groupId for groups)
       messagesToBackup.push({
-        messageId: message.id.toString(),
+        messageId: squashedMessage.messageId,
         channelId: channel.channelId,
-        dateTime: message.date,
-        text: text,
+        dateTime: squashedMessage.dateTime,
+        text: squashedMessage.text,
         title: title,
-        ...(imageFileNames.length > 0 && { imageFileNames }),
+        ...(squashedMessage.imageFileNames.length > 0 && {
+          imageFileNames: squashedMessage.imageFileNames,
+        }),
+        ...(squashedMessage.groupedId && {
+          groupedId: squashedMessage.groupedId,
+        }),
       });
     }
 
