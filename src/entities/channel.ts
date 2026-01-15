@@ -12,4 +12,5 @@ export interface Message {
   text: string;
   dateTime: number;
   imageFileNames?: string[];
+  groupedId?: string;
 }
