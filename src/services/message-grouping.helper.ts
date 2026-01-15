@@ -20,9 +20,9 @@ export function organizeMessagesIntoGroups(
   messages: Api.Message[]
 ): MessageGroup[] {
   const groupsMap = new Map<string, Api.Message[]>();
-  const singleMessages: Api.Message[] = [];
+  const emittedGroupIds = new Set<string>();
+  const groups: MessageGroup[] = [];
 
-  // Separate grouped messages from single messages
   for (const message of messages) {
     if (message.groupedId) {
       const groupId = message.groupedId.toString();
@@ -30,22 +30,23 @@ export function organizeMessagesIntoGroups(
         groupsMap.set(groupId, []);
       }
       groupsMap.get(groupId)!.push(message);
-    } else {
-      singleMessages.push(message);
     }
   }
 
-  const groups: MessageGroup[] = [];
-
-  // Add grouped messages (sorted by date within each group)
-  for (const [groupId, msgs] of groupsMap.entries()) {
+  for (const msgs of groupsMap.values()) {
     msgs.sort((a, b) => a.date - b.date);
-    groups.push({ groupId, messages: msgs });
   }
 
-  // Add single messages
-  for (const msg of singleMessages) {
-    groups.push({ groupId: null, messages: [msg] });
+  for (const message of messages) {
+    if (message.groupedId) {
+      const groupId = message.groupedId.toString();
+      if (!emittedGroupIds.has(groupId)) {
+        groups.push({ groupId, messages: groupsMap.get(groupId)! });
+        emittedGroupIds.add(groupId);
+      }
+    } else {
+      groups.push({ groupId: null, messages: [message] });
+    }
   }
 
   return groups;
