@@ -1,13 +1,20 @@
 import Antropic from "@anthropic-ai/sdk";
 import { ContentBlock } from "@anthropic-ai/sdk/src/resources/messages.js";
+import * as mustache from "mustache";
+import * as fs from "fs";
+import * as path from "path";
 
 export class AIService {
   private readonly antropic: Antropic;
   private readonly maxRetries: number = 20;
-  private readonly baseDelay: number = 1000; // 1 second
+  private readonly baseDelay: number = 1000;
+  private readonly summarizePromptTemplate: string;
 
   constructor(apiKey: string) {
     this.antropic = new Antropic({ apiKey });
+
+    const promptPath = path.join(__dirname, "../prompts/summarize-text.md");
+    this.summarizePromptTemplate = fs.readFileSync(promptPath, "utf-8");
   }
 
   private async sleep(ms: number): Promise<void> {
@@ -37,12 +44,16 @@ export class AIService {
           `AI API attempt ${attempt + 1}/${this.maxRetries} for text summarization`
         );
 
+        const prompt = mustache.render(this.summarizePromptTemplate, {
+          text: question,
+        });
+
         const result = await this.antropic.messages.create({
           model: "claude-3-5-haiku-latest",
           messages: [
             {
               role: "user",
-              content: `Суммаризируй следующий текст в одно предложение до 100 символов: ${question}`,
+              content: prompt,
             },
           ],
           max_tokens: 1000,
