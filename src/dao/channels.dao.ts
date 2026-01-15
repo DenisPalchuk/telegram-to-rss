@@ -41,4 +41,12 @@ export class ChannelsDao {
   async getAllByUserId(userId: string) {
     return this.channelsCollection.find({ userId }).toArray();
   }
+
+  async delete(channelId: string, userId: string) {
+    const result = await this.channelsCollection.deleteOne({
+      userId,
+      channelId,
+    });
+    return result.deletedCount > 0;
+  }
 }

@@ -18,4 +18,9 @@ export class MessagesDao {
   async getAll() {
     return this.messagesCollection.find().toArray();
   }
+
+  async deleteByChannelId(channelId: string) {
+    const result = await this.messagesCollection.deleteMany({ channelId });
+    return result.deletedCount;
+  }
 }
