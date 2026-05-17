@@ -1,17 +1,16 @@
-import Antropic from "@anthropic-ai/sdk";
-import { ContentBlock } from "@anthropic-ai/sdk/src/resources/messages.js";
+import OpenAI from "openai";
 import * as mustache from "mustache";
 import * as fs from "fs";
 import * as path from "path";
 
 export class AIService {
-  private readonly antropic: Antropic;
+  private readonly openai: OpenAI;
   private readonly maxRetries: number = 20;
   private readonly baseDelay: number = 1000;
   private readonly summarizePromptTemplate: string;
 
   constructor(apiKey: string) {
-    this.antropic = new Antropic({ apiKey });
+    this.openai = new OpenAI({ apiKey });
 
     const promptPath = path.join(__dirname, "../prompts/summarize-text.md");
     this.summarizePromptTemplate = fs.readFileSync(promptPath, "utf-8");
@@ -22,15 +21,21 @@ export class AIService {
   }
 
   private isRetryableError(error: any): boolean {
-    // Check for connection errors, rate limits, and temporary server errors
     return (
       error.name === "APIConnectionError" ||
+      error.name === "RateLimitError" ||
+      error.status === 408 ||
+      error.status === 409 ||
       error.status === 429 ||
       error.status === 500 ||
       error.status === 502 ||
       error.status === 503 ||
       error.status === 504 ||
+      error.code === "ECONNRESET" ||
+      error.code === "ETIMEDOUT" ||
       (error.cause && error.cause.code === "EAI_AGAIN") ||
+      (error.cause && error.cause.code === "ECONNRESET") ||
+      (error.cause && error.cause.code === "ETIMEDOUT") ||
       (error.message && error.message.includes("getaddrinfo"))
     );
   }
@@ -48,19 +53,15 @@ export class AIService {
           text: question,
         });
 
-        const result = await this.antropic.messages.create({
-          model: "claude-3-5-haiku-latest",
-          messages: [
-            {
-              role: "user",
-              content: prompt,
-            },
-          ],
-          max_tokens: 1000,
+        const result = await this.openai.responses.create({
+          model: "gpt-5.4-mini",
+          reasoning: { effort: "none" },
+          input: prompt,
+          max_output_tokens: 120,
         });
 
         console.log(`AI API call successful on attempt ${attempt + 1}`);
-        return this.getTextFromAntropicResultContent(result.content);
+        return this.getTextFromResponse(result.output_text);
       } catch (error) {
         lastError = error;
         console.error(
@@ -90,10 +91,12 @@ export class AIService {
     throw lastError;
   }
 
-  getTextFromAntropicResultContent(block: ContentBlock[]) {
-    return block
-      .filter((block) => block.type === "text")
-      .map((block) => block.text)
-      .join(" ");
+  getTextFromResponse(text: string | null | undefined) {
+    const normalizedText = text?.trim();
+    if (!normalizedText) {
+      throw new Error("OpenAI response did not contain text output");
+    }
+
+    return normalizedText;
   }
 }

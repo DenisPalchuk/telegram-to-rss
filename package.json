@@ -11,7 +11,6 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.32.1",
     "express": "^4.21.1",
     "feed": "^4.2.2",
     "grammy": "^1.31.0",
@@ -19,6 +18,7 @@
     "mongodb": "^6.10.0",
     "mustache": "^4.2.0",
     "node-schedule": "^2.1.1",
+    "openai": "^6.0.0",
     "telegram": "^2.26.6",
     "tsx": "^4.19.2"
   },
