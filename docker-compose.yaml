@@ -34,7 +34,7 @@ services:
       TELEGRAM_API_HASH: ${TELEGRAM_API_HASH}
       TELEGRAM_SESSION_KEY: ${TELEGRAM_SESSION_KEY}
       BOT_CLIENT_TOKEN: ${BOT_CLIENT_TOKEN}
-      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+      DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY}
       BASE_URL: ${BASE_URL}
     command: sh -c "npm install && npm run start:dev"
     depends_on:
