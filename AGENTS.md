@@ -19,7 +19,7 @@ Allows users to:
   - `grammy` for the Telegram bot interface
 - **Web Framework**: Express.js
 - **Database**: MongoDB
-- **AI**: OpenAI API (for message summarization)
+- **AI**: DeepSeek API (for message summarization)
 - **RSS**: `feed` library for generating RSS XML
 - **Task Scheduling**: `node-schedule` for periodic updates
 
@@ -101,7 +101,7 @@ Wrapper around Telegram SDK:
 - Uses `feed` library for RSS 2.0 format
 
 ### 5. AI Service (`src/services/ai.service.ts`)
-- Uses OpenAI Responses API (`gpt-5.4-mini` model)
+- Uses DeepSeek Chat Completions API (`deepseek-v4-pro` model) via fetch
 - Summarizes message text into one-sentence titles (up to 100 chars)
 - Includes retry logic with exponential backoff for API reliability
 - Handles DNS and connection errors gracefully
@@ -169,7 +169,7 @@ telegram-to-rss/
 │   │   │   └── errors.middleware.ts  # Error handling
 │   │   └── rss.router.ts             # RSS endpoints
 │   ├── services/
-│   │   ├── ai.service.ts             # OpenAI integration
+│   │   ├── ai.service.ts             # DeepSeek integration
 │   │   ├── channels.service.ts       # Channel business logic
 │   │   ├── message-grouping.helper.ts # Message grouping utilities
 │   │   ├── rss.service.ts            # RSS generation
@@ -193,7 +193,7 @@ Required environment variables (see `.env.example`):
 - `TELEGRAM_API_ID` - Telegram API credentials
 - `TELEGRAM_API_HASH` - Telegram API credentials
 - `TELEGRAM_SESSION_KEY` - Telegram session string
-- `OPENAI_API_KEY` - OpenAI API key
+- `DEEPSEEK_API_KEY` - DeepSeek API key
 - `BOT_CLIENT_TOKEN` - Telegram bot token
 - `BASE_URL` - Public URL for RSS feeds and images
 
@@ -311,7 +311,7 @@ docker-compose up -d
 ### Common Issues
 1. **Channel not found**: Ensure bot has access to channel and channel ID is correct
 2. **Image download fails**: Check Telegram API rate limits
-3. **AI summarization fails**: Verify OPENAI_API_KEY and check API quota
+3. **AI summarization fails**: Verify DEEPSEEK_API_KEY and check API quota
 4. **RSS feed not updating**: Check scheduled job logs and Telegram connection
 
 ## File Naming Conventions

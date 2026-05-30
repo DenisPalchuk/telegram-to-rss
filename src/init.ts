@@ -27,7 +27,7 @@ export const initLayers = async () => {
   const TELEGRAM_API_ID = process.env.TELEGRAM_API_ID;
   const TELEGRAM_API_HASH = process.env.TELEGRAM_API_HASH;
   const TELEGRAM_SESSION_KEY = process.env.TELEGRAM_SESSION_KEY;
-  const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+  const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY;
   const BOT_CLIENT_TOKEN = process.env.BOT_CLIENT_TOKEN;
   const BASE_URL = process.env.BASE_URL;
   const RSS_FEED_URL = `${BASE_URL}/rss`;
@@ -40,7 +40,7 @@ export const initLayers = async () => {
     !TELEGRAM_API_ID ||
     !TELEGRAM_API_HASH ||
     !TELEGRAM_SESSION_KEY ||
-    !OPENAI_API_KEY ||
+    !DEEPSEEK_API_KEY ||
     !BOT_CLIENT_TOKEN ||
     !RSS_FEED_URL
   ) {
@@ -73,7 +73,7 @@ export const initLayers = async () => {
 
   // Services
   const rssService = new RssService();
-  const aiService = new AIService(OPENAI_API_KEY);
+  const aiService = new AIService(DEEPSEEK_API_KEY);
   const usersService = new UsersService(usersDao);
   const channelsService = new ChannelsService(
     channelsDao,
