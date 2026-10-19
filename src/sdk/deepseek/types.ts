@@ -38,5 +38,6 @@ export type DeepSeekSDKOptions = {
   baseURL?: string;
   maxRetries?: number;
   baseDelay?: number;
+  requestTimeoutMs?: number;
   textCompletion?: DeepSeekTextCompletionOptions;
 };

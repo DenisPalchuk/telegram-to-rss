@@ -13,4 +13,5 @@ export interface Message {
   dateTime: number;
   imageFileNames?: string[];
   groupedId?: string;
+  telegramLink?: string;
 }

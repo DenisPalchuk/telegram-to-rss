@@ -225,7 +225,8 @@ The instance refreshes channels on startup and fetches a newly added channel imm
 ### Current behavior to know
 
 - **Fetch window:** each refresh retrieves the latest 20 messages. Initial setup does not import the entire channel archive, and posts outside that window can be missed between refreshes.
-- **Schedule:** the current cron expression is `* 6 * * *`, which refreshes every minute from **06:00 through 06:59**, using the process's timezone. To refresh once at 06:00, change it to `0 6 * * *` in [src/index.ts](./src/index.ts).
+- **Schedule:** `0 6 * * *` refreshes once daily at **06:00**, using the process's timezone. Concurrent refreshes share the same pending run, including updates triggered by adding a channel.
+- **AI failures:** each title request has up to 3 attempts of 15 seconds, with short backoff delays. If summarization fails, a title is taken from the message text and processing continues.
 - **Existing posts:** saved messages are skipped on later fetches; edits and deletions in Telegram are not synchronized.
 - **Media:** the public file route currently accepts UUID-named `.jpg` files. Image documents with other extensions may be downloaded but are not served by that route. Video and audio are not included.
 - **Access:** feed URLs contain a user ID. The HTTP route checks that the user exists, but does not enforce channel ownership or require a login; a user-specific URL is not an access-control boundary.

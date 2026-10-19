@@ -34,7 +34,7 @@ export function organizeMessagesIntoGroups(
   }
 
   for (const msgs of groupsMap.values()) {
-    msgs.sort((a, b) => a.date - b.date);
+    msgs.sort((a, b) => a.date - b.date || a.id - b.id);
   }
 
   for (const message of messages) {

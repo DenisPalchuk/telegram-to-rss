@@ -137,11 +137,10 @@ Helper functions for handling Telegram message groups:
      - Download media (images)
      - Combine text from grouped messages
      - Generate title using AI
-     - Create RSS item with content + images
-   - Combine old and new items
-   - Generate RSS XML file
-   - Save to `rss/{channelId}.xml`
-   - Backup messages to MongoDB
+     - Save each processed message to MongoDB with an idempotent upsert
+   - Deduplicate saved and new messages by message ID
+   - Generate RSS items with stable GUIDs and stored Telegram links
+   - Atomically replace `rss/{channelId}.xml`
 
 ### Serving RSS Feeds
 - RSS files served via `/rss/:userId/:channelId.xml`
@@ -222,7 +221,7 @@ Recent feature implementation (see recent commits):
 ### AI Summarization
 - Generates concise titles from message content
 - Russian language support
-- Robust error handling with 20 retry attempts
+- Up to 3 attempts with a 15-second request timeout and fallback titles
 - Exponential backoff for rate limiting
 
 ## Database Schema
@@ -256,7 +255,8 @@ Recent feature implementation (see recent commits):
   text: string,
   dateTime: number,
   imageFileNames?: string[],
-  groupedId?: string      // Present if part of a group
+  groupedId?: string,     // Present if part of a group
+  telegramLink?: string   // Stored Telegram URL for consistent links
 }
 ```
 
@@ -297,7 +297,7 @@ docker-compose up -d
 - AI service includes retry logic with exponential backoff
 
 ### Scheduling
-- Cron expression: `* 6 * * *` (every day at 6 AM)
+- Cron expression: `0 6 * * *` (every day at 6 AM)
 - All channels refreshed on application startup
 
 ### Message Processing

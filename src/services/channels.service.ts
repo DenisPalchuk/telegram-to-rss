@@ -12,9 +12,13 @@ import {
   filterNewMessageGroups,
   squashMessageGroup,
 } from "./message-grouping.helper";
-import {Api} from "telegram";
+import { Api } from "telegram";
+import { randomUUID } from "crypto";
 
 export class ChannelsService {
+  private readonly channelRefreshes = new Map<string, Promise<void>>();
+  private allChannelsRefresh?: Promise<void>;
+
   constructor(
     private readonly channelsDao: ChannelsDao,
     private readonly messagesDao: MessagesDao,
@@ -72,19 +76,31 @@ export class ChannelsService {
     try {
       await fs.promises.unlink(`rss/${channelId}.xml`);
     } catch (error) {
-      console.error(`Failed to delete RSS file for channel ${channelId}`, error);
+      console.error(
+        `Failed to delete RSS file for channel ${channelId}`,
+        error
+      );
     }
 
     return true;
   }
 
-  async refreshAllChannels() {
+  refreshAllChannels(): Promise<void> {
+    if (!this.allChannelsRefresh) {
+      this.allChannelsRefresh = this.updateAllChannels().finally(() => {
+        this.allChannelsRefresh = undefined;
+      });
+    }
+    return this.allChannelsRefresh;
+  }
+
+  private async updateAllChannels() {
     const allChannels = await this.channelsDao.getAll();
     if (!Array.isArray(allChannels)) {
       throw new Error("Failed to parse all channels list");
     }
 
-    const uniqueChannelsMap = new Map<string, any>();
+    const uniqueChannelsMap = new Map<string, Channel>();
     allChannels.forEach((channel) => {
       uniqueChannelsMap.set(channel.channelId, channel);
     });
@@ -92,11 +108,28 @@ export class ChannelsService {
     const distinctChannels = Array.from(uniqueChannelsMap.values());
 
     for (const channel of distinctChannels) {
-      await this.refreshChannel(channel);
+      try {
+        await this.refreshChannel(channel);
+      } catch (error) {
+        console.error(`Failed to refresh channel ${channel.channelId}`, error);
+      }
     }
   }
 
-  async refreshChannel(channel: Channel) {
+  refreshChannel(channel: Channel): Promise<void> {
+    const pendingRefresh = this.channelRefreshes.get(channel.channelId);
+    if (pendingRefresh) {
+      return pendingRefresh;
+    }
+
+    const refresh = this.updateChannelFeed(channel).finally(() => {
+      this.channelRefreshes.delete(channel.channelId);
+    });
+    this.channelRefreshes.set(channel.channelId, refresh);
+    return refresh;
+  }
+
+  private async updateChannelFeed(channel: Channel) {
     console.log("generate file for channel", channel.channelId);
     const lastMessages = await this.telegramService.getLastMessages(
       channel.channelId
@@ -116,17 +149,15 @@ export class ChannelsService {
       `Need to process ${newMessageGroups.length} message groups for channel ${channel.channelId}`
     );
 
-    const newItems: Item[] = [];
-    const messagesToBackup: Message[] = [];
+    const messagesById = new Map<string, Message>(
+      backupMessagesByChannelId.map((message) => [message.messageId, message])
+    );
 
     for (const messageGroup of newMessageGroups) {
       const firstMessage = messageGroup.messages[0];
-      const groupLabel =
-        messageGroup.groupId || `message ${firstMessage.id}`;
+      const groupLabel = messageGroup.groupId || `message ${firstMessage.id}`;
 
-      console.log(
-        `Processing ${groupLabel} for channel ${channel.channelId}`
-      );
+      console.log(`Processing ${groupLabel} for channel ${channel.channelId}`);
 
       // Download media from all messages in the group
       let allImageFileNames: string[] = [];
@@ -151,7 +182,13 @@ export class ChannelsService {
         allImageFileNames
       );
 
-      const telegramLink = `https://t.me/c/${firstMessage.chatId}/${squashedMessage.linkMessageId}`;
+      const chatId = firstMessage.chatId?.toString().replace(/^-100/, "");
+      const telegramLink = chatId
+        ? `https://t.me/c/${chatId}/${squashedMessage.linkMessageId}`
+        : this.getTelegramLink(
+            channel.channelId,
+            squashedMessage.linkMessageId
+          );
       const hasText = squashedMessage.text.trim().length > 0;
 
       let title: string;
@@ -165,52 +202,31 @@ export class ChannelsService {
         console.log(`No text in ${groupLabel}, skipping AI summarization`);
       }
 
-      let contentWithImages = hasText
-        ? squashedMessage.text.replace(/\n/g, "<br />")
-        : `<a href="${telegramLink}">Open in Telegram</a>`;
-      if (squashedMessage.imageFileNames.length > 0) {
-        const imageHtml = squashedMessage.imageFileNames
-          .map(
-            (url) =>
-              `<img src="${this.IMAGES_BASE_URL}/${url}" alt="${url}" />`
-          )
-          .join("");
-        contentWithImages = `${contentWithImages}<br/>${imageHtml}`;
-      }
-
-      // Create RSS item - use linkMessageId for Telegram URL
-      const item: Item = {
-        title: title,
-        link: `https://t.me/c/${firstMessage.chatId}/${squashedMessage.linkMessageId}`,
-        date: new Date(squashedMessage.dateTime * 1000),
-        content: contentWithImages,
-        ...(squashedMessage.imageFileNames.length > 0 && {
-          image: {
-            url: `${this.IMAGES_BASE_URL}/${squashedMessage.imageFileNames[0]}`,
-            type: "image/jpeg",
-          },
-        }),
-      };
-      newItems.push(item);
-
-      // Backup message - use messageId (groupId for groups)
-      messagesToBackup.push({
+      const message: Message = {
         messageId: squashedMessage.messageId,
         channelId: channel.channelId,
         dateTime: squashedMessage.dateTime,
         text: squashedMessage.text,
-        title: title,
+        title,
+        telegramLink,
         ...(squashedMessage.imageFileNames.length > 0 && {
           imageFileNames: squashedMessage.imageFileNames,
         }),
         ...(squashedMessage.groupedId && {
           groupedId: squashedMessage.groupedId,
         }),
-      });
+      };
+      await this.messagesDao.batchInsert([message]);
+      messagesById.set(message.messageId, message);
     }
 
-    const oldItems: Item[] = backupMessagesByChannelId.map((message) => {
-      let contentWithImages = message.text.replace(/\n/g, "<br />");
+    const items: Item[] = Array.from(messagesById.values()).map((message) => {
+      const telegramLink =
+        message.telegramLink ||
+        this.getTelegramLink(message.channelId, message.messageId);
+      let contentWithImages = message.text.trim()
+        ? message.text.replace(/\n/g, "<br />")
+        : `<a href="${telegramLink}">Open in Telegram</a>`;
 
       const imageFileNames = message.imageFileNames || [];
 
@@ -226,7 +242,8 @@ export class ChannelsService {
 
       return {
         title: message.title,
-        link: "https://t.me/c/" + message.channelId + "/" + message.messageId,
+        guid: `https://t.me/c/${message.channelId}/${message.messageId}`,
+        link: telegramLink,
         date: new Date(message.dateTime * 1000),
         content: contentWithImages,
         ...(imageFileNames.length > 0 && {
@@ -246,17 +263,25 @@ export class ChannelsService {
         link: "feedLink",
         language: "en",
       },
-      [...oldItems, ...newItems]
+      items
     );
 
     console.log(`Writing XML feed for channel ${channel.channelId}`);
 
-    await fs.promises.writeFile(`rss/${channel.channelId}.xml`, xmlFeed, {
-      flag: "w+",
-    });
-
-    if (messagesToBackup.length > 0) {
-      await this.messagesDao.batchInsert(messagesToBackup);
+    const feedPath = `rss/${channel.channelId}.xml`;
+    const temporaryPath = `${feedPath}.${randomUUID()}.tmp`;
+    try {
+      await fs.promises.writeFile(temporaryPath, xmlFeed);
+      await fs.promises.rename(temporaryPath, feedPath);
+    } finally {
+      await fs.promises.rm(temporaryPath, { force: true });
     }
+  }
+
+  private getTelegramLink(channelId: string, messageId: string) {
+    if (/^-?\d+$/.test(channelId)) {
+      return `https://t.me/c/${channelId.replace(/^-100/, "")}/${messageId}`;
+    }
+    return `https://t.me/${channelId.replace(/^@/, "")}/${messageId}`;
   }
 }
