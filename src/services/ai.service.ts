@@ -19,6 +19,20 @@ export class AIService {
       text: question,
     });
 
-    return this.deepSeekSdk.createTextCompletion(prompt);
+    try {
+      return await this.deepSeekSdk.createTextCompletion(prompt);
+    } catch (error) {
+      console.error(
+        "Failed to summarize message, using its text as title",
+        error
+      );
+      return (
+        question
+          .replace(/<[^>]*>/g, "")
+          .replace(/\s+/g, " ")
+          .trim()
+          .slice(0, 100) || "Message without text"
+      );
+    }
   }
 }

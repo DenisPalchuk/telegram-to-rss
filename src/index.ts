@@ -56,18 +56,26 @@ initLayers().then(async (context) => {
 
   app.listen(3001);
 
-  console.log("Refreshing all channels on startup");
-  await context.channelsService.refreshAllChannels();
-  console.log("All channels refreshed after startup");
-
   schedule.scheduleJob(
-    "* 6 * * *",
+    "0 6 * * *",
     async function (channelsService: ChannelsService) {
       console.log("Refreshing all channels");
-      await channelsService.refreshAllChannels();
-      console.log("All channels refreshed");
+      try {
+        await channelsService.refreshAllChannels();
+        console.log("All channels refreshed");
+      } catch (error) {
+        console.error("Failed to refresh all channels", error);
+      }
     }.bind(null, context.channelsService)
   );
+
+  console.log("Refreshing all channels on startup");
+  try {
+    await context.channelsService.refreshAllChannels();
+    console.log("All channels refreshed after startup");
+  } catch (error) {
+    console.error("Failed to refresh all channels after startup", error);
+  }
 });
 
 export default app;

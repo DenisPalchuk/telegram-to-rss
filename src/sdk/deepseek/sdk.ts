@@ -20,13 +20,15 @@ export class DeepSeekSDK {
   private readonly baseURL: string;
   private readonly maxRetries: number;
   private readonly baseDelay: number;
+  private readonly requestTimeoutMs: number;
   private readonly textCompletionDefaults: Required<DeepSeekTextCompletionOptions>;
 
   constructor(options: DeepSeekSDKOptions) {
     this.apiKey = options.apiKey;
     this.baseURL = options.baseURL ?? "https://api.deepseek.com";
-    this.maxRetries = options.maxRetries ?? 20;
+    this.maxRetries = options.maxRetries ?? 3;
     this.baseDelay = options.baseDelay ?? 1000;
+    this.requestTimeoutMs = options.requestTimeoutMs ?? 15000;
     this.textCompletionDefaults = {
       model: "deepseek-v4-flash",
       thinking: { type: "disabled" },
@@ -69,6 +71,7 @@ export class DeepSeekSDK {
   ): Promise<DeepSeekChatCompletionResponse> {
     const response = await fetch(this.getURL("/chat/completions"), {
       method: "POST",
+      signal: AbortSignal.timeout(this.requestTimeoutMs),
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${this.apiKey}`,
@@ -101,7 +104,10 @@ export class DeepSeekSDK {
 
         if (attempt < this.maxRetries - 1) {
           await this.sleep(
-            this.baseDelay * Math.pow(2, attempt) + Math.random() * 1000
+            Math.min(
+              this.baseDelay * Math.pow(2, attempt) + Math.random() * 1000,
+              10000
+            )
           );
         }
       }
@@ -142,6 +148,8 @@ export class DeepSeekSDK {
     };
 
     return (
+      error.name === "TimeoutError" ||
+      error.name === "AbortError" ||
       (error.name === "TypeError" && error.message.includes("fetch failed")) ||
       errorWithCode.code === "ECONNRESET" ||
       errorWithCode.code === "ETIMEDOUT" ||

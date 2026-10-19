@@ -8,7 +8,21 @@ export class MessagesDao {
   }
 
   async batchInsert(messages: Message[]) {
-    return this.messagesCollection.insertMany(messages);
+    if (messages.length === 0) {
+      return;
+    }
+    return this.messagesCollection.bulkWrite(
+      messages.map((message) => ({
+        updateOne: {
+          filter: {
+            channelId: message.channelId,
+            messageId: message.messageId,
+          },
+          update: { $setOnInsert: message },
+          upsert: true,
+        },
+      }))
+    );
   }
 
   async getMessagesByChannelId(channelId: string) {
